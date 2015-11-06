@@ -12,13 +12,14 @@ com.geertwille = {
     selection: undefined,
     assetsFolderName: '',
 
-    export: function(type, factors, document, selection, baseDensity, assetsFolderName) {
+    export: function(type, factors, document, selection) {
+        var config = this.readConfig();
         this.type = type;
         this.factors = factors;
         this.document = document;
         this.selection = selection;
-        this.baseDensity = baseDensity;
-        this.assetsFolderName = assetsFolderName;
+        this.baseDensity = config['density-scale'];
+        this.assetsFolderName = config['assets-folder-name'];
         this.baseDir = this.getDirFromPrompt();
 
         if (this.baseDir == null) {
