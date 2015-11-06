@@ -10,19 +10,22 @@ com.geertwille = {
     layerVisibility: [],
     document: undefined,
     selection: undefined,
+    assetsFolderName: '',
 
-    export: function(type, factors, document, selection, baseDensity) {
+    export: function(type, factors, document, selection, baseDensity, assetsFolderName) {
         this.type = type;
         this.factors = factors;
         this.document = document;
         this.selection = selection;
         this.baseDensity = baseDensity;
+        this.assetsFolderName = assetsFolderName;
         this.baseDir = this.getDirFromPrompt();
 
         if (this.baseDir == null) {
             this.alert("Not saving any assets");
             return;
         }
+
 
         // If nothing is selected tell the user so
         if ([selection count] == 0) {
@@ -32,6 +35,10 @@ com.geertwille = {
 
         if (this.baseDensity == 0) {
             this.baseDensity = this.getDensityScaleFromPrompt();
+        }
+
+        if (this.assetsFolderName == '') {
+            this.assetsFolderName = this.getAssetFolderNameFromPrompt();
         }
 
         // Hide all layers except the ones we are slicing
@@ -57,7 +64,7 @@ com.geertwille = {
         if (this.baseDir.indexOf('/res') > -1 && this.type == "android") {
             helpers.openInFinder(this.baseDir);
         } else {
-            helpers.openInFinder(this.baseDir + "/assets");
+            helpers.openInFinder(this.baseDir + "/" + this.assetsFolderName);
         }
     },
 
@@ -99,9 +106,46 @@ com.geertwille = {
 
         responseCode = [alert runModal];
         var densityScale = [accessory indexOfSelectedItem] + 1;
-        helpers.saveJsonToFile([NSDictionary dictionaryWithObjectsAndKeys:densityScale, @"density-scale", nil], folders.sketchPluginsPath + folders.pluginFolder + '/config.json');
-
+        this.baseDensity = densityScale;
+        if( this.assetsFolderName == '') {
+            this.assetsFolderName = this.readConfig()['assets-folder-name']
+        }
+        this.writeConfig();
         return densityScale;
+    },
+
+    //Let the user change assets folder name
+    getAssetFolderNameFromPrompt: function() {
+        var accessory     = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 25)],
+            alert         = [[NSAlert alloc] init],
+            assetsFolderName = this.readConfig()['assets-folder-name'],
+            responseCode
+        ;
+        [accessory setStringValue: assetsFolderName];
+
+        [alert setMessageText:'Edit assets folder name'];
+        [alert addButtonWithTitle:'OK'];
+        [alert setAccessoryView:accessory];
+
+        responseCode = [alert runModal];
+        var assetsFolderName = [accessory stringValue];
+        this.assetsFolderName = assetsFolderName;
+        if( this.baseDensity == 0) {
+            this.baseDensity = this.readConfig()['density-scale']
+        }
+        this.writeConfig();
+        return assetsFolderName;
+    },
+
+    writeConfig: function() {
+      var folders = helpers.readPluginPath();
+      var dest = folders.sketchPluginsPath + folders.pluginFolder + '/config.json';
+      var k = [NSDictionary dictionaryWithObjectsAndKeys:
+          this.assetsFolderName, @"assets-folder-name",
+          this.baseDensity, @"density-scale",
+          nil];
+
+      helpers.saveJsonToFile(k, dest);
     },
 
     processSlice: function(slice) {
@@ -137,7 +181,7 @@ com.geertwille = {
             if (this.baseDir.indexOf('/res') > -1 && this.type == "android") {
                 fileName = this.baseDir + "/" + name + "/" + prefix + sliceName + suffix + ".png";
             } else {
-                fileName = this.baseDir + "/assets/" + this.type + "/" + name + "/" + prefix+ sliceName + suffix + ".png";
+                fileName = this.baseDir + "/" + this.assetsFolderName + "/" + this.type + "/" + name + "/" + prefix+ sliceName + suffix + ".png";
             }
 
             [(com.geertwille.document) saveArtboardOrSlice: version toFile:fileName];
@@ -178,5 +222,9 @@ com.geertwille = {
 
     updateBaseDensity: function() {
         this.getDensityScaleFromPrompt();
+    },
+
+    updateAssetsFolderName: function() {
+        this.getAssetFolderNameFromPrompt();
     }
 }

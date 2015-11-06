@@ -32,6 +32,11 @@
                 "identifier": "change-base-density",
                 "shortcut": "ctrl alt shift 4",
                 "script": "Change Base Density.sketchscript"
+            },
+            {
+                "name": "Rename Assets Folder",
+                "identifier": "rename-assets-folder",
+                "script": "Rename Assets Folder.sketchscript"
             }
         ],
     "menu":
@@ -41,7 +46,8 @@
                 "export-assets-android",
                 "export-assets-ios",
                 "export-assets-wp",
-                "change-base-density"
+                "change-base-density",
+                "rename-assets-folder"
             ]
         }
 }

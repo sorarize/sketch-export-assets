@@ -31,6 +31,6 @@ var onRun = function(context) {
         com.geertwille.document = document;
 
         var config = com.geertwille.readConfig();
-        com.geertwille.export('ios', factors, document, selection, config['density-scale']);
+        com.geertwille.export('ios', factors, document, selection, config['density-scale'], config['assets-folder-name']);
     });
 }
